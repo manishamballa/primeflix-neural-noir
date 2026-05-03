@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 export default function HudHeader({
   topThemesList,
@@ -27,10 +28,20 @@ export default function HudHeader({
         </div>
 
         <nav className="hidden md:flex gap-6 font-mono-hud text-[11px] uppercase">
-          {["Start", "Movies", "Books", "Games", "Arena"].map((s) => (
-            <a key={s} href={`#${s.toLowerCase()}`} className="text-muted-foreground hover:text-gold transition-colors">
-              {s}
-            </a>
+          {[
+            { label: "Hub", to: "/" },
+            { label: "Movies", to: "/movies" },
+            { label: "Books", to: "/books" },
+            { label: "Games", to: "/games" },
+            { label: "Arena", to: "/arena" },
+          ].map((s) => (
+            <Link
+              key={s.label}
+              to={s.to}
+              className="text-muted-foreground hover:text-gold transition-colors"
+            >
+              {s.label}
+            </Link>
           ))}
         </nav>
 

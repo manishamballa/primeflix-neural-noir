@@ -73,7 +73,16 @@ export default function ExpansionHUD({
               {item.year ? ` · ${item.year}` : ""}
             </p>
 
-            <div className="grid md:grid-cols-[1fr,260px] gap-8">
+            <div className="grid md:grid-cols-[200px,1fr,220px] gap-6 md:gap-8">
+              {item.poster ? (
+                <img
+                  src={item.poster}
+                  alt={`${item.title} poster`}
+                  className="w-full max-w-[200px] rounded-lg border border-primary/40 gold-glow object-cover aspect-[2/3]"
+                />
+              ) : (
+                <div className="hidden md:block" />
+              )}
               <p className="text-crystal/90 leading-relaxed text-[15px]">
                 {item.description}
               </p>

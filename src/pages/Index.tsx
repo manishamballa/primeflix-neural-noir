@@ -9,7 +9,7 @@ import GravityWell from "@/primeflix/three/GravityWell";
 import MoviesParallax from "@/primeflix/three/MoviesParallax";
 import BooksHelix from "@/primeflix/three/BooksHelix";
 import GamesNodes from "@/primeflix/three/GamesNodes";
-import { books, ContentItem, games, movies } from "@/primeflix/data/content";
+import { books, ContentItem, Domain, games, movies } from "@/primeflix/data/content";
 import {
   pulseFromClick,
   recommendedFeed,
@@ -17,10 +17,15 @@ import {
   topThemes,
   Pulse,
 } from "@/primeflix/data/recommender";
+import TastePrompt, { CalibrateButton } from "@/primeflix/components/TastePrompt";
 
 const Index = () => {
   const [pulse, setPulse] = useState<Pulse>({});
   const [active, setActive] = useState<ContentItem | null>(null);
+  const [promptDomain, setPromptDomain] = useState<Domain | null>(null);
+  const [picksByDomain, setPicksByDomain] = useState<
+    Partial<Record<Domain, ContentItem[]>>
+  >({});
 
   const heroFeed = useMemo(() => recommendedFeed(pulse, 9), [pulse]);
   const related = useMemo(
@@ -44,6 +49,73 @@ const Index = () => {
   const pulseStrength = Math.min(
     1,
     Object.values(pulse).reduce((a, b) => a + b, 0) / 8,
+  );
+
+  const openPrompt = (d: Domain) => setPromptDomain(d);
+
+  const handlePromptSubmit = (
+    d: Domain,
+    result: { pulseSeed: Pulse; picks: ContentItem[] },
+  ) => {
+    setPicksByDomain((prev) => ({ ...prev, [d]: result.picks }));
+    setPulse((p) => {
+      const next = { ...p };
+      for (const [t, w] of Object.entries(result.pulseSeed)) {
+        next[t] = (next[t] ?? 0) + w;
+      }
+      return next;
+    });
+    setPromptDomain(null);
+    // Auto-open the strongest match for instant gratification
+    if (result.picks[0]) setActive(result.picks[0]);
+  };
+
+  const ResultStrip = ({ domain }: { domain: Domain }) => {
+    const picks = picksByDomain[domain];
+    if (!picks || picks.length === 0) return null;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-8 glass-panel rounded-xl p-5"
+      >
+        <div className="font-mono-hud text-[10px] uppercase tracking-[0.3em] text-gold mb-3">
+          ▸ Tuned recommendations · {picks.length}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {picks.map((p, i) => (
+            <button
+              key={p.id}
+              onClick={() => handlePick(p)}
+              className="text-left glass-panel rounded-lg p-3 hover:scale-[1.02] transition-transform"
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-mono-hud text-[9px] uppercase text-gold/80">
+                  #{i + 1} · {p.domain}
+                </div>
+                {p.rating != null && (
+                  <div className="font-mono-hud text-[10px] text-gold">
+                    {p.rating}
+                  </div>
+                )}
+              </div>
+              <div className="text-sm text-crystal mt-1 line-clamp-1">
+                {p.title}
+              </div>
+              <div className="text-[11px] text-muted-foreground line-clamp-1">
+                {p.genre}
+              </div>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    );
+  };
+
+  const SectionAction = ({ domain }: { domain: Domain }) => (
+    <div className="mb-6 -mt-4 flex justify-end">
+      <CalibrateButton onClick={() => openPrompt(domain)} />
+    </div>
   );
 
   return (
@@ -95,7 +167,9 @@ const Index = () => {
         title="The 3D parallax void."
         description="High-resolution stories suspended at varying depths — Korean noir, French whimsy, Telugu epic, English cyberpunk. All connected to your reading and play."
       >
+        <SectionAction domain="movie" />
         <MoviesParallax items={movies} onPick={handlePick} />
+        <ResultStrip domain="movie" />
       </Section>
 
       {/* BOOKS */}
@@ -105,7 +179,9 @@ const Index = () => {
         title="A DNA helix of ideas."
         description="Two strands twist around a single spine: productivity, novels and philosophy weave together. The helix turns slowly — pick the volume that catches the gold."
       >
+        <SectionAction domain="book" />
         <BooksHelix items={books} onPick={handlePick} />
+        <ResultStrip domain="book" />
       </Section>
 
       {/* GAMES */}
@@ -115,7 +191,9 @@ const Index = () => {
         title="Geometric worlds, morphing."
         description="Each game is a polyhedron whose silhouette mirrors its themes — octahedrons for cyberpunk, dodecahedrons for RPG, cubes for strategy. Touch one to enter the world."
       >
+        <SectionAction domain="game" />
         <GamesNodes items={games} onPick={handlePick} />
+        <ResultStrip domain="game" />
       </Section>
 
       {/* ARENA */}
@@ -125,7 +203,9 @@ const Index = () => {
         title="The Obsidian Arena."
         description="Live IPL standings and upcoming fixtures, projected on floating glass panels. Gold typography on black, the way trophies should feel."
       >
+        <SectionAction domain="sport" />
         <ObsidianArena />
+        <ResultStrip domain="sport" />
       </Section>
 
       {/* FOOTER */}
@@ -145,6 +225,15 @@ const Index = () => {
         related={related}
         onClose={() => setActive(null)}
         onPick={handlePick}
+      />
+
+      <TastePrompt
+        domain={promptDomain}
+        open={promptDomain !== null}
+        onClose={() => setPromptDomain(null)}
+        onSubmit={(result) =>
+          promptDomain && handlePromptSubmit(promptDomain, result)
+        }
       />
     </main>
   );

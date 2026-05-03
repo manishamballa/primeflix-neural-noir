@@ -8,35 +8,41 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Neural-Noir palette */
+    --obsidian: 0 0% 4%;
+    --obsidian-deep: 0 0% 2%;
+    --obsidian-soft: 0 0% 8%;
+    --gold: 44 92% 56%;
+    --gold-bright: 48 100% 65%;
+    --gold-dim: 40 60% 35%;
+    --crystal: 0 0% 98%;
+    --crystal-dim: 0 0% 70%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
+    --background: var(--obsidian);
+    --foreground: var(--crystal);
+    --card: var(--obsidian-soft);
+    --card-foreground: var(--crystal);
+    --popover: var(--obsidian-deep);
+    --popover-foreground: var(--crystal);
+    --primary: var(--gold);
+    --primary-foreground: var(--obsidian);
+    --secondary: var(--obsidian-soft);
+    --secondary-foreground: var(--crystal);
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: var(--gold);
+    --accent-foreground: var(--obsidian);
+    --destructive: 0 84% 60%;
+    --destructive-foreground: var(--crystal);
+    --border: 44 50% 20%;
+    --input: 0 0% 14%;
+    --ring: var(--gold);
     --radius: 0.5rem;
+
+    --gradient-gold: linear-gradient(135deg, hsl(var(--gold-bright)), hsl(var(--gold-dim)));
+    --gradient-obsidian: radial-gradient(ellipse at center, hsl(var(--obsidian-soft)), hsl(var(--obsidian-deep)));
+    --shadow-gold: 0 0 40px hsl(var(--gold) / 0.4), 0 0 80px hsl(var(--gold) / 0.15);
+    --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.6), inset 0 1px 0 hsl(var(--gold) / 0.2);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +106,63 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Cinzel', 'Playfair Display', serif;
+    letter-spacing: 0.05em;
+  }
+  .font-mono-hud {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.1em;
+  }
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+  .text-crystal {
+    color: hsl(var(--crystal));
+  }
+  .glass-panel {
+    background: linear-gradient(135deg, hsl(0 0% 100% / 0.04), hsl(0 0% 100% / 0.01));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--gold) / 0.25);
+    box-shadow: var(--shadow-glass);
+  }
+  .gold-glow {
+    box-shadow: var(--shadow-gold);
+  }
+  .text-glow-gold {
+    text-shadow: 0 0 20px hsl(var(--gold) / 0.6), 0 0 40px hsl(var(--gold) / 0.3);
+  }
+  .neural-grid {
+    background-image:
+      radial-gradient(hsl(var(--gold) / 0.08) 1px, transparent 1px),
+      radial-gradient(hsl(var(--gold) / 0.04) 1px, transparent 1px);
+    background-size: 40px 40px, 80px 80px;
+    background-position: 0 0, 20px 20px;
+  }
+  @keyframes pulse-gold {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  .animate-pulse-gold {
+    animation: pulse-gold 3s ease-in-out infinite;
+  }
+  @keyframes synapse-flow {
+    0% { stroke-dashoffset: 100; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .synapse-line {
+    stroke-dasharray: 4 8;
+    animation: synapse-flow 4s linear infinite;
   }
 }

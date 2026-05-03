@@ -5,6 +5,7 @@ import {
   Domain,
   allContent,
   iplPointsTable,
+  upcomingMatches,
 } from "../data/content";
 import { Pulse } from "../data/recommender";
 
@@ -114,6 +115,44 @@ function recommendForDomain(
   genre: string,
   limit = 6,
 ): ContentItem[] {
+  if (domain === "sport") {
+    // Build synthetic ContentItems from IPL data so the result strip works.
+    const wantsTeam = !genre.toLowerCase().startsWith("any");
+    const teams = wantsTeam
+      ? iplPointsTable.filter((t) => t.short === genre)
+      : iplPointsTable;
+    const teamShorts = new Set(teams.map((t) => t.short));
+    const matches = upcomingMatches.filter(
+      (m) => !wantsTeam || teamShorts.has(m.home) || teamShorts.has(m.away),
+    );
+    const intensity =
+      Object.values(pulse).reduce((a, b) => a + b, 0) || 1;
+    const items: ContentItem[] = [
+      ...teams.slice(0, 3).map((t, i) => ({
+        id: `s-team-${t.short}`,
+        domain: "sport" as Domain,
+        title: t.team,
+        subtitle: `${t.short} · ${t.points} pts · NRR ${t.nrr.toFixed(2)}`,
+        genre: "IPL · Standings",
+        themes: ["epic", "rebellion", "strategy"],
+        rating: Math.min(10, t.points / 2 + intensity * 0.1 + i * 0.1),
+        accent: "#E8B73A",
+        description: `${t.team} sit on ${t.points} points after ${t.played} matches with ${t.won} wins and a net run-rate of ${t.nrr.toFixed(2)}. The Obsidian Arena projects them as a live signal in the playoff race — momentum, form and fixture difficulty all weigh into where they finish on the table.`,
+      })),
+      ...matches.slice(0, 3).map((m) => ({
+        id: `s-match-${m.id}`,
+        domain: "sport" as Domain,
+        title: `${m.home} vs ${m.away}`,
+        subtitle: `${m.date} · ${m.time}`,
+        genre: `Fixture · ${m.venue}`,
+        themes: ["action", "epic"],
+        accent: "#F2C744",
+        description: `${m.home} face ${m.away} on ${m.date} at ${m.venue}. Tip-off ${m.time}. The arena lens predicts a high-stakes encounter with playoff implications for both line-ups.`,
+      })),
+    ];
+    return items.slice(0, limit);
+  }
+
   const pool = allContent.filter((c) => c.domain === domain);
   const filtered =
     genre && !genre.toLowerCase().startsWith("any")
